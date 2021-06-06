@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/user")
-//@CrossOrigin(origins = "http://localhost:4200") //Enlace con Angular
+@CrossOrigin(origins = "http://localhost:4200") //Enlace con Angular
 public class UserController {
 
     @Autowired
