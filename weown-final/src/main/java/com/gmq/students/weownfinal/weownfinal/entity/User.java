@@ -1,8 +1,12 @@
 package com.gmq.students.weownfinal.weownfinal.entity;
 
+import com.gmq.students.weownfinal.weownfinal.security.entity.Rol;
+
 import javax.persistence.*;
 import java.sql.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -30,6 +34,10 @@ public class User {
 
     @Column(name = "image")
     private String image;
+
+    @ManyToMany(cascade = {CascadeType.ALL},fetch=FetchType.EAGER)
+    @JoinTable(name="user_rol",joinColumns = @JoinColumn(name="user_id"),inverseJoinColumns = @JoinColumn(name="rol_id"))
+    private Set<Rol> roles = new HashSet<Rol>();
 
     @OneToOne(cascade = CascadeType.ALL)
     @PrimaryKeyJoinColumn
@@ -85,6 +93,7 @@ public class User {
         this.lastName = lastName;
         this.dob = dob;
         this.image = image;
+        this.roles.add(new Rol(""));
     }
 
     public int getId() {
@@ -189,5 +198,13 @@ public class User {
 
     public void setReceived(List<MessageEntity> received) {
         this.received = received;
+    }
+
+    public Set<Rol> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<Rol> roles) {
+        this.roles = roles;
     }
 }
