@@ -49,7 +49,7 @@ public class UserService {
 
     public boolean existsByFirstName(String firstName) { return userRepository.existsByFirstName(firstName);}
 
-    public boolean existsByEmail(String name) {
-        return userRepository.existsByFirstName(name);
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
     }
 }
