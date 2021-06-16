@@ -1,11 +1,11 @@
 package com.gmq.students.weownfinal.weownfinal.security.dto;
 
-import javax.validation.constraints.Email;
+
 import javax.validation.constraints.NotBlank;
 
 public class LoginUserDTO {
 
-    @Email
+    @NotBlank
     private String email;
     @NotBlank
     private String password;

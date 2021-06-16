@@ -1,6 +1,8 @@
 package com.gmq.students.weownfinal.weownfinal.controller;
 
 import com.gmq.students.weownfinal.weownfinal.dto.Message;
+import com.gmq.students.weownfinal.weownfinal.dto.ProfileDTO;
+import com.gmq.students.weownfinal.weownfinal.entity.Profile;
 import com.gmq.students.weownfinal.weownfinal.entity.User;
 import com.gmq.students.weownfinal.weownfinal.security.dto.JwtDTO;
 import com.gmq.students.weownfinal.weownfinal.security.dto.LoginUserDTO;
@@ -111,6 +113,25 @@ public class UserController {
     	
     }
      */
+
+    @GetMapping("/description/{email}")
+    public ResponseEntity<Profile> getProfile(@PathVariable("email")String email) {
+
+        if(!userService.existsByEmail(email)){
+            return new ResponseEntity(new Message("Algo ha salido mal"),HttpStatus.NOT_FOUND);
+        }
+        User user = userService.getByEmail(email).get();
+        if(user.getProfile()==null) {
+            user.setProfile(new Profile("esta es mi descripción"));
+            userService.save(user);
+
+        }
+        Profile profile = user.getProfile();
+
+        return new ResponseEntity<Profile>(profile,HttpStatus.OK);
+
+    }
+
     @PostMapping("/login")
     public ResponseEntity<JwtDTO> login(@Valid @RequestBody LoginUserDTO loginUserDTO, BindingResult bindingResult) {
         if(bindingResult.hasErrors()) {
@@ -131,6 +152,20 @@ public class UserController {
 
     }
 
+    @PutMapping("/description")
+    public ResponseEntity<?> setUserDescription(@RequestBody ProfileDTO profileDTO) {
+        Profile profile = new Profile(profileDTO.getDescription());
+
+        if(!userService.getByEmail(profileDTO.getEmail()).isPresent()) {
+            return new ResponseEntity(new Message("Algo ha salido mal, inténtelo de nuevo más tarde"),HttpStatus.BAD_REQUEST);
+        }
+        User user = userService.getByEmail(profileDTO.getEmail()).get();
+        profile.setUser(user);
+        user.setProfile(profile);
+        userService.save(user);
+        return new ResponseEntity(new Message("Perfil modificado con éxito"),HttpStatus.OK);
+    }
+
     @DeleteMapping("/delete/{email}")
     public ResponseEntity<?> deleteUser(@PathVariable("email")String email) {
         if(!userService.existsByEmail(email)) {
@@ -141,5 +176,7 @@ public class UserController {
 
         return new ResponseEntity(new Message("Usuario eliminado"),HttpStatus.OK);
     }
+
+
 
 }

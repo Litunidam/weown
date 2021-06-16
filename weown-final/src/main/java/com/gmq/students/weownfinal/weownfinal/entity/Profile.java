@@ -15,6 +15,9 @@ public class Profile  {
     @Column(name = "description")
     private String description;
 
+    @OneToOne(mappedBy = "profile")
+    private User user;
+
     public Profile() {
 
     }
@@ -22,6 +25,11 @@ public class Profile  {
     public Profile(String description) {
 
         this.description = description;
+    }
+
+    public Profile(String description, User user) {
+        this.description = description;
+        this.user = user;
     }
 
     public int getId() {
@@ -40,5 +48,14 @@ public class Profile  {
         this.description = description;
     }
 
+    public User getUser() {
+        return user;
+    }
+
+
+
+    public void setUser(User user) {
+        this.user = user;
+    }
 }
 

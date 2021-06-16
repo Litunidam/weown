@@ -40,7 +40,7 @@ public class User {
     private Set<Rol> roles = new HashSet<Rol>();
 
     @OneToOne(cascade = CascadeType.ALL)
-    @PrimaryKeyJoinColumn
+    @JoinColumn(name = "profile_id", referencedColumnName = "profile_id")
     private Profile profile;
 
 
@@ -94,6 +94,10 @@ public class User {
         this.dob = dob;
         this.image = image;
         this.roles.add(new Rol(""));
+    }
+
+    public User(Profile profile) {
+        this.profile = profile;
     }
 
     public int getId() {
