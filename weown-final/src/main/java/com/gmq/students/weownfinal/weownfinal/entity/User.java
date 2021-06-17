@@ -35,13 +35,12 @@ public class User {
     @Column(name = "image")
     private String image;
 
+    @Column(name = "description")
+    private String description;
+
     @ManyToMany(cascade = {CascadeType.ALL},fetch=FetchType.EAGER)
     @JoinTable(name="user_rol",joinColumns = @JoinColumn(name="user_id"),inverseJoinColumns = @JoinColumn(name="rol_id"))
     private Set<Rol> roles = new HashSet<Rol>();
-
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "profile_id", referencedColumnName = "profile_id")
-    private Profile profile;
 
 
     @ElementCollection(fetch=FetchType.EAGER)
@@ -86,7 +85,7 @@ public class User {
 
     }
 
-    public User(String email, String password, String firstName, String lastName, Date dob, String image) {
+    public User(String email, String password, String firstName, String lastName, Date dob, String image,String description) {
         this.email = email;
         this.password = password;
         this.firstName = firstName;
@@ -94,10 +93,7 @@ public class User {
         this.dob = dob;
         this.image = image;
         this.roles.add(new Rol(""));
-    }
-
-    public User(Profile profile) {
-        this.profile = profile;
+        this.description = description;
     }
 
     public int getId() {
@@ -156,14 +152,6 @@ public class User {
         this.image = image;
     }
 
-    public Profile getProfile() {
-        return profile;
-    }
-
-    public void setProfile(Profile profile) {
-        this.profile = profile;
-    }
-
     public List<Photo> getPhotos() {
         return photos;
     }
@@ -210,5 +198,13 @@ public class User {
 
     public void setRoles(Set<Rol> roles) {
         this.roles = roles;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

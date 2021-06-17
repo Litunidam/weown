@@ -1,16 +1,13 @@
 package com.gmq.students.weownfinal.weownfinal.controller;
 
 import com.gmq.students.weownfinal.weownfinal.dto.Message;
-import com.gmq.students.weownfinal.weownfinal.dto.ProfileDTO;
-import com.gmq.students.weownfinal.weownfinal.entity.Profile;
 import com.gmq.students.weownfinal.weownfinal.entity.User;
 import com.gmq.students.weownfinal.weownfinal.security.dto.JwtDTO;
 import com.gmq.students.weownfinal.weownfinal.security.dto.LoginUserDTO;
 import com.gmq.students.weownfinal.weownfinal.security.dto.NewUserDTO;
 import com.gmq.students.weownfinal.weownfinal.security.jwt.JwtProvider;
-import org.apache.commons.lang3.StringUtils;
-import com.gmq.students.weownfinal.weownfinal.dto.UserDTO;
 import com.gmq.students.weownfinal.weownfinal.service.UserService;
+import com.gmq.students.weownfinal.weownfinal.utils.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,11 +17,16 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.util.ClassUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.Part;
 import javax.validation.Valid;
+import java.io.IOException;
+import java.io.PrintWriter;
 
 @RestController
 @RequestMapping("/user")
@@ -53,8 +55,7 @@ public class UserController {
             return new ResponseEntity(new Message("Ese email ya está registrado"), HttpStatus.BAD_REQUEST);
         }
 
-        User user = new User(newUserDTO.getEmail(),passwordEncoder.encode(newUserDTO.getPassword()),newUserDTO.getFirstName(), newUserDTO.getLastName(),newUserDTO.getDob(),"");
-
+        User user = new User(newUserDTO.getEmail(),passwordEncoder.encode(newUserDTO.getPassword()),newUserDTO.getFirstName(), newUserDTO.getLastName(),newUserDTO.getDob(),"","Esta es mi descripcción");
 
         /* Para añadir la implementación del admin
         Set<Rol> roles = new HashSet<>();
@@ -68,67 +69,38 @@ public class UserController {
         return new ResponseEntity(new Message("Usuario registrado con éxito"),HttpStatus.CREATED);
     }
 
-    /**
-    //@PostMapping("/register")
-    public ResponseEntity<?> createUser(@RequestBody UserDTO userDTO) {
-        
-        if(StringUtils.isBlank(userDTO.getFirstName())) {
-            return new ResponseEntity(new Message("Introduce un nombre"), HttpStatus.BAD_REQUEST);
+    @PostMapping("/changepassword")
+    public ResponseEntity<?> changePassword( @RequestBody NewUserDTO newUserDTO, BindingResult bindingResult) {
+        if(bindingResult.hasErrors()) {
+            return new ResponseEntity(new Message("Campos introducidos incorrectos"), HttpStatus.BAD_REQUEST);
         }
-        if(StringUtils.isBlank(userDTO.getEmail())) {
-            return new ResponseEntity(new Message("Introduce un email"), HttpStatus.BAD_REQUEST);
-        }
-        if(StringUtils.isBlank(userDTO.getLastName())) {
-            return new ResponseEntity(new Message("Introduce un apellido"), HttpStatus.BAD_REQUEST);
-        }
-        if(StringUtils.isBlank(userDTO.getPassword())) {
-            return new ResponseEntity(new Message("Introduce una contraseña"), HttpStatus.BAD_REQUEST);
-        }
-        
-        if(userService.existsByEmail(userDTO.getEmail())) {
-            return new ResponseEntity(new Message("El email ya está registrado"),HttpStatus.BAD_REQUEST);
-        }
-        
-        userService.save(new User(userDTO.getEmail(),userDTO.getPassword(),userDTO.getFirstName(),userDTO.getLastName(),userDTO.getDob(),userDTO.getImage()));
 
-        return new ResponseEntity(new Message("¡Usuario registrado!"),HttpStatus.OK);
+        User user = userService.getByEmail(newUserDTO.getEmail()).get();
+        user.setPassword(passwordEncoder.encode(newUserDTO.getPassword()));
 
+        userService.save(user);
+        return new ResponseEntity(new Message("Contraseña actualizada"),HttpStatus.OK);
     }
 
-    //@GetMapping("/login/{email}/{password}")
-    public ResponseEntity<User> getUser(@PathVariable("email")String email, @PathVariable("password") String password) {
-    	
-    	if(!userService.existsByEmail(email)) {
-    		return new ResponseEntity(new Message("El usuario no está registrado"),HttpStatus.NOT_FOUND);
-    	}
-    	
-    	User user = userService.getByEmail(email).get();
-    	System.out.println(email+" "+password);
-    	if(user.getPassword().equals(password)) {
-    		return new ResponseEntity<User>(user,HttpStatus.OK);
-    	}
-    	
-    	return new ResponseEntity(new Message("Las credenciales no coinciden"),HttpStatus.BAD_REQUEST);
-    	
-    	
+
+    @GetMapping("/user/{email}")
+    public ResponseEntity<User> getUser(@PathVariable("email")String email) {
+        if(!userService.existsByEmail(email)){
+            return new ResponseEntity(new Message("Algo ha salido mal"),HttpStatus.NOT_FOUND);
+        }
+        User user = userService.getByEmail(email).get();
+        return new ResponseEntity<User>(user,HttpStatus.OK);
     }
-     */
 
     @GetMapping("/description/{email}")
-    public ResponseEntity<Profile> getProfile(@PathVariable("email")String email) {
+    public ResponseEntity<User> getDescription(@PathVariable("email")String email) {
 
         if(!userService.existsByEmail(email)){
             return new ResponseEntity(new Message("Algo ha salido mal"),HttpStatus.NOT_FOUND);
         }
         User user = userService.getByEmail(email).get();
-        if(user.getProfile()==null) {
-            user.setProfile(new Profile("esta es mi descripción"));
-            userService.save(user);
 
-        }
-        Profile profile = user.getProfile();
-
-        return new ResponseEntity<Profile>(profile,HttpStatus.OK);
+        return new ResponseEntity<User>(user,HttpStatus.OK);
 
     }
 
@@ -153,16 +125,18 @@ public class UserController {
     }
 
     @PutMapping("/description")
-    public ResponseEntity<?> setUserDescription(@RequestBody ProfileDTO profileDTO) {
-        Profile profile = new Profile(profileDTO.getDescription());
+    public ResponseEntity<?> setUserDescription(@RequestBody String[] dual) {
 
-        if(!userService.getByEmail(profileDTO.getEmail()).isPresent()) {
+        String email = dual[0];
+        String description = dual[1];
+
+        if(!userService.getByEmail(email).isPresent()) {
             return new ResponseEntity(new Message("Algo ha salido mal, inténtelo de nuevo más tarde"),HttpStatus.BAD_REQUEST);
         }
-        User user = userService.getByEmail(profileDTO.getEmail()).get();
-        profile.setUser(user);
-        user.setProfile(profile);
+        User user = userService.getByEmail(email).get();
+        user.setDescription(description);
         userService.save(user);
+
         return new ResponseEntity(new Message("Perfil modificado con éxito"),HttpStatus.OK);
     }
 
@@ -177,6 +151,36 @@ public class UserController {
         return new ResponseEntity(new Message("Usuario eliminado"),HttpStatus.OK);
     }
 
+    @PostMapping("/profileimage/{email}/{file}")
+    public ResponseEntity<?> setPathImage( @PathVariable("email") String email, @PathVariable("file") MultipartFile file) {
+
+        if (!file.isEmpty()) {
+            // Get the file name, including the suffix
+            String fileName = email + "jpg";
+
+            // Store in this path: the path is under the static file in the project directory: (Note: this file may need to be created by yourself)
+            // The reason for putting it under static is that it stores static file resources, that is, you can enter the local server address through the browser, and you can access it when adding the file name
+            String path = ClassUtils.getDefaultClassLoader().getResource("").getPath() + "static/";
+
+            try {
+                // This method is a package for writing files. In the util class, import the package and use it. The method will be given later
+                FileUtils.fileupload(file.getBytes(), path, fileName);
+            } catch (IOException e) {
+
+                e.printStackTrace();
+                return new ResponseEntity(new Message("Error"), HttpStatus.BAD_REQUEST);
+            }
+
+            User user = userService.getByEmail(email).get();
+
+            // Then create the corresponding entity class, add the following path, and then write through the database operation method
+            user.setImage("http://localhost:8080/" + fileName);
+            userService.save(user);
 
 
+            return new ResponseEntity(new Message("Foto Actualizada"), HttpStatus.OK);
+        }
+        return new ResponseEntity(new Message("Error"), HttpStatus.BAD_REQUEST);
+
+    }
 }

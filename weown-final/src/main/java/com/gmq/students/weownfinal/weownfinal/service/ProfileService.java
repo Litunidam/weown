@@ -1,6 +1,5 @@
 package com.gmq.students.weownfinal.weownfinal.service;
-
-import com.gmq.students.weownfinal.weownfinal.entity.Profile;
+ /*
 import com.gmq.students.weownfinal.weownfinal.repository.ProfileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,6 +13,9 @@ public class ProfileService {
     @Autowired
     ProfileRepository profileRepository;
 
+
+
+
     public void save(Profile profile) {
         profileRepository.save(profile);
     }
@@ -26,3 +28,4 @@ public class ProfileService {
     }
 
 }
+ */

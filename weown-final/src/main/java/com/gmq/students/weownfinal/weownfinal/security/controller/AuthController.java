@@ -49,7 +49,7 @@ public class AuthController {
             return new ResponseEntity(new Message("Ese email ya está registrado"), HttpStatus.BAD_REQUEST);
         }
 
-        User user = new User(newUserDTO.getEmail(),passwordEncoder.encode(newUserDTO.getPassword()),newUserDTO.getFirstName(), newUserDTO.getLastName(),newUserDTO.getDob(),"");
+        User user = new User(newUserDTO.getEmail(),passwordEncoder.encode(newUserDTO.getPassword()),newUserDTO.getFirstName(), newUserDTO.getLastName(),newUserDTO.getDob(),"","Esta es mi descripción");
 
 
         /* Para añadir la implementación del admin
