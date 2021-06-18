@@ -8,6 +8,7 @@ import com.gmq.students.weownfinal.weownfinal.security.dto.NewUserDTO;
 import com.gmq.students.weownfinal.weownfinal.security.jwt.JwtProvider;
 import com.gmq.students.weownfinal.weownfinal.service.UserService;
 import com.gmq.students.weownfinal.weownfinal.utils.FileUtils;
+import com.gmq.students.weownfinal.weownfinal.utils.ProfileHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -151,8 +152,11 @@ public class UserController {
         return new ResponseEntity(new Message("Usuario eliminado"),HttpStatus.OK);
     }
 
-    @PostMapping("/profileimage/{email}/{file}")
-    public ResponseEntity<?> setPathImage( @PathVariable("email") String email, @PathVariable("file") MultipartFile file) {
+    @PostMapping("/profileimage/")
+    public ResponseEntity<?> setPathImage(@RequestBody ProfileHelper profileHelper) {
+
+        String email = profileHelper.getEmail();
+        MultipartFile file = profileHelper.getFile();
 
         if (!file.isEmpty()) {
             // Get the file name, including the suffix
