@@ -155,6 +155,7 @@ public class UserController {
     @PostMapping("/profileimage/")
     public ResponseEntity<?> setPathImage(@RequestBody ProfileHelper profileHelper) {
 
+
         String email = profileHelper.getEmail();
         MultipartFile file = profileHelper.getFile();
 
