@@ -4,6 +4,7 @@ import com.gmq.students.weownfinal.weownfinal.security.entity.Rol;
 
 import javax.persistence.*;
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -42,15 +43,11 @@ public class User {
     @JoinTable(name="user_rol",joinColumns = @JoinColumn(name="user_id"),inverseJoinColumns = @JoinColumn(name="rol_id"))
     private Set<Rol> roles = new HashSet<Rol>();
 
+    //@OneToMany(mappedBy = "user", cascade = {CascadeType.ALL})
 
-    @ElementCollection(fetch=FetchType.EAGER)
-    @ManyToMany(cascade = {CascadeType.ALL})
-    @JoinTable(name = "users_photos",
-            joinColumns = {
-                    @JoinColumn(name = "user_id")},
-            inverseJoinColumns = {
-                    @JoinColumn(name = "photo_id")}
-    )
+    //@ElementCollection(fetch=FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "user_id")
     private List<Photo> photos;
 
     @ElementCollection(fetch=FetchType.EAGER)
