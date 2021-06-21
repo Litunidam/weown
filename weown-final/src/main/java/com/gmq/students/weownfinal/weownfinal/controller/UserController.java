@@ -1,6 +1,7 @@
 package com.gmq.students.weownfinal.weownfinal.controller;
 
 import com.gmq.students.weownfinal.weownfinal.dto.Message;
+import com.gmq.students.weownfinal.weownfinal.entity.MessageEntity;
 import com.gmq.students.weownfinal.weownfinal.entity.Photo;
 import com.gmq.students.weownfinal.weownfinal.entity.User;
 import com.gmq.students.weownfinal.weownfinal.security.dto.JwtDTO;
@@ -28,6 +29,8 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.validation.Valid;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.sql.Date;
+import java.time.Instant;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
@@ -269,5 +272,40 @@ public class UserController {
         String path = user.getImage();
 
         return new ResponseEntity<String>(path,HttpStatus.OK);
+    }
+
+    @PostMapping("/send")
+    public ResponseEntity<?> sendMessage(@RequestParam("text")String text,@RequestParam("userEmail")String userEmail,@RequestParam("receiverEmail")String receiverEmail) {
+
+        //recibimos el usuario
+        User user = userService.getByEmail(userEmail).get();
+
+        //comprobamos si existe el usuario que recibe el mensaje
+        if(!userService.getByEmail(receiverEmail).isPresent()) {
+            return new ResponseEntity(new Message("Usuario no encontrado"), HttpStatus.BAD_REQUEST);
+        }
+        User userReceived = userService.getByEmail(receiverEmail).get();
+
+        Date date = new java.sql.Date(Date.from(Instant.now()).getTime());
+        //creamos la entidad mensaje
+        MessageEntity messageEntity = new MessageEntity(date,text);
+        //establecemos los usuarios
+        messageEntity.setUserSend(user);
+        messageEntity.setUserReceived(userReceived);
+        //establecemos los mensajes enviados del usuario que envía
+        List<MessageEntity> messagesSends = user.getSends();
+        messagesSends.add(messageEntity);
+        user.setSends(messagesSends);
+
+        //establecemos los mensajes recibidos del usuario que recibe
+        List<MessageEntity> messagesReceived = userReceived.getReceived();
+        messagesReceived.add(messageEntity);
+        userReceived.setReceived(messagesReceived);
+
+        userService.save(user);
+        userService.save(userReceived);
+
+
+        return new ResponseEntity(new Message("Mensaje enviado"), HttpStatus.OK);
     }
 }

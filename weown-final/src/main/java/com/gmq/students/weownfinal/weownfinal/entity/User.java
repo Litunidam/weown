@@ -71,11 +71,13 @@ public class User {
     private List<User> follow;
 
     @ElementCollection(fetch=FetchType.EAGER)
-    @OneToMany(mappedBy="userSend",cascade=CascadeType.ALL)
+    @OneToMany(cascade=CascadeType.ALL)
+    @JoinColumn(name = "message_id")
     private List<MessageEntity> sends;
 
     @ElementCollection(fetch=FetchType.EAGER)
-    @OneToMany(mappedBy="userReceived",cascade=CascadeType.ALL)
+    @OneToMany(cascade=CascadeType.ALL)
+    @JoinColumn(name = "message_id")
     private List<MessageEntity> received;
 
     public User() {
