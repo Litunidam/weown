@@ -2,8 +2,7 @@ package com.gmq.students.weownfinal.weownfinal.entity;
 
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
+
 
 @Entity
 @Table(name = "photos")
@@ -24,27 +23,17 @@ public class Photo {
     @Column(name = "description")
     private String description;
 
-    /*
-    //@ElementCollection(fetch=FetchType.EAGER)
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "user_id")
-    private User user;
-     */
-
-
     public Photo() {
 
     }
 
     public Photo(String title, byte[] photo, String description) {
 
-
         this.title = title;
 
         this.photo = photo;
 
         this.description = description;
-
     }
 
     public int getId() {
@@ -78,18 +67,5 @@ public class Photo {
     public void setDescription(String description) {
         this.description = description;
     }
-
-    /*
-     public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-     */
-
-
-
 
 }

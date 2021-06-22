@@ -20,7 +20,6 @@ public class UserService {
         return userRepository.findAll();
     }
 
-
     public Optional<User> getUser(int id) {
         return userRepository.findById(id);
     }
@@ -32,16 +31,13 @@ public class UserService {
         return userRepository.findByEmail(email);
     }
 
-
     public void save(User user) {
         userRepository.save(user);
     }
 
-
     public void delete(int id) {
         userRepository.deleteById(id);
     }
-
 
     public boolean existsById(int id) {
         return userRepository.existsById(id);

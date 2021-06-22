@@ -8,6 +8,7 @@ import com.gmq.students.weownfinal.weownfinal.security.dto.JwtDTO;
 import com.gmq.students.weownfinal.weownfinal.security.dto.LoginUserDTO;
 import com.gmq.students.weownfinal.weownfinal.security.dto.NewUserDTO;
 import com.gmq.students.weownfinal.weownfinal.security.jwt.JwtProvider;
+import com.gmq.students.weownfinal.weownfinal.service.MessageService;
 import com.gmq.students.weownfinal.weownfinal.service.PhotoService;
 import com.gmq.students.weownfinal.weownfinal.service.UserService;
 import com.gmq.students.weownfinal.weownfinal.utils.FileUtils;
@@ -28,10 +29,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.time.Instant;
-import java.util.Base64;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -51,6 +51,9 @@ public class UserController {
 
     @Autowired
     PhotoService photoService;
+
+    @Autowired
+    MessageService messageService;
 
     @Autowired
     JwtProvider jwtProvider;
@@ -137,8 +140,6 @@ public class UserController {
 
         return new ResponseEntity(jwtDTO,HttpStatus.OK);
 
-
-
     }
 
     @PutMapping("/description")
@@ -168,68 +169,30 @@ public class UserController {
     @PostMapping("/profileimage/")
     public ResponseEntity<?> setPathImage(@RequestParam("email") String email, @RequestParam("file") MultipartFile multiFile) throws IOException {
 
-        //String email = profileHelper.getEmail();
         System.out.println("esto es el email: "+email);
-
-        //File file = profileHelper.getFile();
-
-
-
-        //System.out.println(file.getName()+ " path: "+file.getAbsolutePath());
-        //InputStream inputStream = new FileInputStream(file);
-       // System.out.println("he pasado el imputstream");
-
-        //MultipartFile multipartFile = new MockMultipartFile(file.getName(), inputStream);
 
         MultipartFile multipartFile = multiFile;
 
         System.out.println("nombre del multipart: "+multipartFile.getOriginalFilename());
 
-        /*
-        final Path root = Paths.get("static");
-
-        try {
-            Files.createDirectory(root);
-        } catch (IOException e) {
-            throw new RuntimeException("Could not initialize folder for upload!");
-        }
-
-        try {
-            Files.copy(multipartFile.getInputStream(), root.resolve(email+".jpg"));
-        } catch (Exception e) {
-            throw new RuntimeException("Could not store the multipartFile1. Error: " + e.getMessage());
-        }
-        */
         if (!multipartFile.isEmpty()) {
-            // Get the multipartFile1 name, including the suffix
             String fileName = email + ".jpg";
-
-            // Store in this path: the path is under the static multipartFile1 in the project directory: (Note: this multipartFile1 may need to be created by yourself)
-            // The reason for putting it under static is that it stores static multipartFile1 resources, that is, you can enter the local server address through the browser, and you can access it when adding the multipartFile1 name
-            //String path = ClassUtils.getDefaultClassLoader().getResource("").getPath() + "static/";
+            //Ruta para guardar las fotos en el proyecto de angular
             String path = "C:/TFG/weown/front/weownFront/src/assets/";
-
-            System.out.println("ruta:"+path);
             try {
-                // This method is a package for writing files. In the util class, import the package and use it. The method will be given later
                 FileUtils.fileupload(multipartFile.getBytes(), path, fileName);
             } catch (IOException e) {
-
                 e.printStackTrace();
                 return new ResponseEntity(new Message("Error"), HttpStatus.BAD_REQUEST);
             }
-
             User user = userService.getByEmail(email).get();
-
-            // Then create the corresponding entity class, add the following path, and then write through the database operation method
             user.setImage("./assets/" + fileName);
-            //.substring(1)
+
             userService.save(user);
 
             return new ResponseEntity(new Message("Foto Actualizada"), HttpStatus.OK);
         }
         return new ResponseEntity(new Message("Error"), HttpStatus.BAD_REQUEST);
-
     }
 
     @PutMapping("/photo/upload")
@@ -242,7 +205,6 @@ public class UserController {
         }
 
         User user = userService.getByEmail(email).get();
-        //img.setUser(user);
 
         List<Photo> photos = user.getPhotos();
         photos.add(img);
@@ -288,10 +250,8 @@ public class UserController {
 
         Date date = new java.sql.Date(Date.from(Instant.now()).getTime());
         //creamos la entidad mensaje
-        MessageEntity messageEntity = new MessageEntity(date,text);
-        //establecemos los usuarios
-        messageEntity.setUserSend(user);
-        messageEntity.setUserReceived(userReceived);
+        MessageEntity messageEntity = new MessageEntity(date,userEmail+" envía: "+text);
+
         //establecemos los mensajes enviados del usuario que envía
         List<MessageEntity> messagesSends = user.getSends();
         messagesSends.add(messageEntity);
@@ -305,7 +265,60 @@ public class UserController {
         userService.save(user);
         userService.save(userReceived);
 
-
         return new ResponseEntity(new Message("Mensaje enviado"), HttpStatus.OK);
     }
+
+    @GetMapping("/list")
+    public ResponseEntity<List<User>> getUsers() {
+
+        List<User> users = userService.getUsers();
+
+        return new ResponseEntity<List<User>>(users,HttpStatus.OK);
+    }
+
+    @PutMapping("/follow")
+    public ResponseEntity<?> followAction(@RequestParam("userEmail")String userEmail,@RequestParam("followUserEmail")String followUserEmail) {
+
+        //obtenemos los usuarios
+        User emailUser = userService.getByEmail(userEmail).get();
+        User followUser = userService.getByEmail(followUserEmail).get();
+
+        //añadimos a los seguidores al seguido
+        if(!followUser.getFollowers().contains(emailUser)){
+            followUser.getFollowers().add(emailUser);
+        }
+
+        //añadimos los seguidos a nuestro usuario
+        if(!emailUser.getFollow().contains(followUser)){
+            emailUser.getFollow().add(followUser);
+        }
+
+        userService.save(followUser);
+        userService.save(emailUser);
+
+        return new ResponseEntity(new Message("Usuarios actualizados"), HttpStatus.OK);
+    }
+
+    @GetMapping("/amount/{email}")
+    public ResponseEntity<ArrayList<Integer>> followAction(@PathVariable("email")String email) {
+
+        User user = userService.getByEmail(email).get();
+
+        ArrayList<Integer> amount = new ArrayList<>();
+
+        if (user.getFollowers().isEmpty()){
+            amount.add(0);
+        }else {
+            amount.add(user.getFollowers().size());
+        }
+
+        if (user.getFollow().isEmpty()){
+            amount.add(0);
+        } else {
+            amount.add(user.getFollow().size());
+        }
+
+        return new ResponseEntity<ArrayList<Integer>>(amount, HttpStatus.OK);
+    }
+
 }

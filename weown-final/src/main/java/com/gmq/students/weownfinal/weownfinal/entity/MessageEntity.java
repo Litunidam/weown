@@ -19,14 +19,6 @@ public class MessageEntity {
     @Column(name = "text")
     private String text;
 
-    @ManyToOne
-    @JoinColumn(name = "sender")
-    private User userSend;
-
-    @ManyToOne
-    @JoinColumn(name = "receiver")
-    private User userReceived;
-
     public MessageEntity() {
 
     }
@@ -58,22 +50,6 @@ public class MessageEntity {
 
     public void setText(String text) {
         this.text = text;
-    }
-
-    public User getUserSend() {
-        return userSend;
-    }
-
-    public void setUserSend(User userSend) {
-        this.userSend = userSend;
-    }
-
-    public User getUserReceived() {
-        return userReceived;
-    }
-
-    public void setUserReceived(User userReceived) {
-        this.userReceived = userReceived;
     }
 
 }

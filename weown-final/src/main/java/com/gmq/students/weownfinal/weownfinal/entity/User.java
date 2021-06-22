@@ -1,5 +1,6 @@
 package com.gmq.students.weownfinal.weownfinal.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.gmq.students.weownfinal.weownfinal.security.entity.Rol;
 
 import javax.persistence.*;
@@ -43,42 +44,31 @@ public class User {
     @JoinTable(name="user_rol",joinColumns = @JoinColumn(name="user_id"),inverseJoinColumns = @JoinColumn(name="rol_id"))
     private Set<Rol> roles = new HashSet<Rol>();
 
-    //@OneToMany(mappedBy = "user", cascade = {CascadeType.ALL})
-
-    //@ElementCollection(fetch=FetchType.EAGER)
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id")
-    private List<Photo> photos;
+    private List<Photo> photos = new ArrayList<>();
 
-    @ElementCollection(fetch=FetchType.EAGER)
-    @ManyToMany(cascade = {CascadeType.ALL})
-    @JoinTable(name = "users_friends",
-            joinColumns = {
-                    @JoinColumn(name = "id_follower")},
-            inverseJoinColumns = {
-                    @JoinColumn(name = "id_follow")}
-    )
-    private List<User> followers;
-
-    @ElementCollection(fetch=FetchType.EAGER)
-    @ManyToMany(cascade = {CascadeType.ALL})
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.ALL})
     @JoinTable(name = "users_friends",
             joinColumns = {
                     @JoinColumn(name = "id_follow")},
             inverseJoinColumns = {
                     @JoinColumn(name = "id_follower")}
     )
-    private List<User> follow;
+    @JsonBackReference
+    private List<User> followers = new ArrayList<>();
 
-    @ElementCollection(fetch=FetchType.EAGER)
-    @OneToMany(cascade=CascadeType.ALL)
-    @JoinColumn(name = "message_id")
-    private List<MessageEntity> sends;
+    @ManyToMany(fetch = FetchType.LAZY,cascade = {CascadeType.ALL},mappedBy = "followers")
+    @JsonBackReference
+    private List<User> follow = new ArrayList<>();
 
-    @ElementCollection(fetch=FetchType.EAGER)
     @OneToMany(cascade=CascadeType.ALL)
-    @JoinColumn(name = "message_id")
-    private List<MessageEntity> received;
+    @JoinColumn(name = "user_sends_id")
+    private List<MessageEntity> sends = new ArrayList<>();
+
+    @OneToMany(cascade=CascadeType.ALL)
+    @JoinColumn(name = "user_received_id")
+    private List<MessageEntity> received = new ArrayList<>();;
 
     public User() {
 
