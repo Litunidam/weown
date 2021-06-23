@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.gmq.students.weownfinal.weownfinal.security.entity.Rol;
 
 import javax.persistence.*;
+import javax.validation.constraints.Email;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -19,6 +20,7 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
+    @Email
     @Column(name = "email", unique = true)
     private String email;
 
